@@ -62,7 +62,7 @@ breaklines=true
 \section{Introducción}
 El objetivo de este trabajo es estudiar la calidad de mezclado en el tubo de salida de dos fluidos diferentes. En particular, en este trabajo se pensó un dispositivo de mezcla de agroquímicos en línea. Es decir, que la mezcla se realice en el momento en que se requiere en lugar de mezclar la cantidad suficiente de productos previo a salir al campo. \par
 El problema de la técnica convencional radica en que la mezcla no es almacenable en depósito para un posterior uso obligándola a ser tratada adecuadamente para reducir la contaminación generada por estos químicos.\par
-Los casos de simulación acá presentados se encuentran en el repositorio  \href{https://github.com/guillerolle/adscripcion_cfd}{https://github.com/guillerolle/adscripcion\_cfd}. Descargar o clonar repositorio para obtener los archivos necesarios para las simulaciones.\par
+Los casos de simulación acá presentados se encuentran en el repositorio  \href{https://github.com/guillerolle/casos_cfd}{https://github.com/guillerolle/casos\_cfd}. Descargar o clonar repositorio para obtener los archivos necesarios para las simulaciones.\par
 Nota: los resultados de las simulaciones no se incluyen en el repositorio para evitar consumir espacio en el mismo. Sólo se encuentran los diccionarios y archivos importantes para realizar las simulaciones. Las simulaciones corren a cuenta de cada uno.
 
 \subsection{Información preliminar del problema}
@@ -132,7 +132,7 @@ simulationType laminar; <- MODIFICAR ESTA LINEA
 \end{lstlisting}
 \marginnote{\small \textbf{Linux tips:\\} '..' representa el directorio superior}
 
-\noindent Ver archivo completo: \href{https://github.com/guillerolle/adscripcion_cfd/blob/master/01/constant/turbulenceProperties}{constant/turbulenceProperties}
+\noindent Ver archivo completo: \href{https://github.com/guillerolle/casos_cfd/blob/master/01/constant/turbulenceProperties}{constant/turbulenceProperties}
 %\lstinputlisting[caption=\textit{constant/turbulenceProperties},frame=shadowbox]{OpenFOAM/turbulenceProperties.txt}
 
 \section{Mallado}
@@ -159,7 +159,7 @@ Se utilizará el mallador \textit{\href{https://cfd.direct/openfoam/user-guide/v
 	
 %\marginnote{\small \textbf{OpenFOAM tips:\\} Es posible definir parámetros de la forma\\ \textit{param valor;} y llamarlos con \textit{\$param}}
 %\lstinputlisting[caption=\textit{system/blockMeshDict},frame=shadowbox]{OpenFOAM/blockMeshDict.txt}
-\noindent Ver archivo completo: \href{https://github.com/guillerolle/adscripcion_cfd/blob/master/01/system/blockMeshDict}{system/blockMeshDict}
+\noindent Ver archivo completo: \href{https://github.com/guillerolle/casos_cfd/blob/master/01/system/blockMeshDict}{system/blockMeshDict}
 
 \bigskip\bigskip
 \marginnote{\small \textbf{Linux tips:\\} \textit{touch <file>} crea un archivo vacío con el nombre \textit{<file>}}
@@ -221,7 +221,7 @@ Después de crear la malla hay que ajustar los archivos \texttt{0/U}, \texttt{0/
 \subsection{Condiciones iniciales}
 El campo de velocidades podemos definirlo como nulo en todo el dominio porque impondremos condiciones de presión. En las entradas y salidas utilizamos la condición \textit{\href{https://www.cfdsupport.com/OpenFOAM-Training-by-CFD-Support/node113.html}{zeroGradient}}. 
 
-Ver archivo completo de condición inicial de velocidad: \href{https://github.com/guillerolle/adscripcion_cfd/blob/master/01/0/U}{0/U}
+Ver archivo completo de condición inicial de velocidad: \href{https://github.com/guillerolle/casos_cfd/blob/master/01/0/U}{0/U}
 
 %\newpage
 %\marginnote{\small \textbf{OpenFOAM tips:\\} Una línea comenzando con // es un comentario y el sofware lo ignorará}
@@ -230,12 +230,12 @@ Ver archivo completo de condición inicial de velocidad: \href{https://github.co
 En cuanto a las presiones, impondremos 300MPa en la entrada de agua y un valor de 0 en la salida. En la entrada de agroquímico nos interesa que la presión sea mayor que la presión del agua en el empalme de los tubos. De esta manera permitiría al agroquímico a ser succionado por el flujo de agua.\par
 Gracias a la tobera en la entrada, existe una depresión en la zona de unión. Impondremos un valor de 300MPa para asegurarnos que la presión sea mayor en ese lugar.
 
-Ver archivo completo de condición inicial de presión: \href{https://github.com/guillerolle/adscripcion_cfd/blob/master/01/0/p}{0/p}
+Ver archivo completo de condición inicial de presión: \href{https://github.com/guillerolle/casos_cfd/blob/master/01/0/p}{0/p}
 %\lstinputlisting[caption=\textit{0/p},frame=shadowbox]{OpenFOAM/p.txt}
 
 \subsection{Diccionarios en system}
 Estos diccionarios contienen información sobre los solvers, pasos de tiempo, métodos numéricos, etc.
-El más importante es \href{https://github.com/guillerolle/adscripcion_cfd/blob/master/01/system/controlDict}{system/controlDict}. Cabe destacar que \textit{simpleFoam} es un solver estacionario, así que lo que se define como tiempo en este diccionario, es en realidad un número que se le asigna a cada iteración. Se pone un deltaT igual a 1 para facilitar la lectura de los archivos generados.
+El más importante es \href{https://github.com/guillerolle/casos_cfd/blob/master/01/system/controlDict}{system/controlDict}. Cabe destacar que \textit{simpleFoam} es un solver estacionario, así que lo que se define como tiempo en este diccionario, es en realidad un número que se le asigna a cada iteración. Se pone un deltaT igual a 1 para facilitar la lectura de los archivos generados.
 \begin{lstlisting}
 [...]
 deltaT 	  1;  // Solamente sirve para enumerar las iteraciones. No afecta a la simulacion
@@ -243,9 +243,9 @@ deltaT 	  1;  // Solamente sirve para enumerar las iteraciones. No afecta a la s
 \end{lstlisting}
 
 Los otros dos contienen información sobre los esquemas numéricos y tolerancias.\par
-Ver archivo: \href{https://github.com/guillerolle/adscripcion_cfd/blob/master/01/system/fvSchemes}{system/fvSchemes}\par
+Ver archivo: \href{https://github.com/guillerolle/casos_cfd/blob/master/01/system/fvSchemes}{system/fvSchemes}\par
 Ver archivo:
-\href{https://github.com/guillerolle/adscripcion_cfd/blob/master/01/system/fvSolution}{system/fvSolution}
+\href{https://github.com/guillerolle/casos_cfd/blob/master/01/system/fvSolution}{system/fvSolution}
 %\lstinputlisting[caption=\textit{0/p},frame=shadowbox]{OpenFOAM/p.txt}
 
 
@@ -346,7 +346,7 @@ inlet_one
 }
 \end{lstlisting}
 
-Ver el archivo completo: \textit{\href{https://github.com/guillerolle/adscripcion_cfd/blob/master/01/RTD/0/T}{RTD/0/T}}
+Ver el archivo completo: \textit{\href{https://github.com/guillerolle/casos_cfd/blob/master/01/RTD/0/T}{RTD/0/T}}
 
 %\lstinputlisting[caption=\textit{RTD/0/T},frame=shadowbox]{OpenFOAM/T.txt}
 
@@ -363,14 +363,14 @@ DT   DT [0 2 -1 0 0 0 0] 0.00005; // Para OpenFOAM-dev (7)
 ...
 \end{lstlisting}
 
-Ver el archivo completo: \textit{\href{https://github.com/guillerolle/adscripcion_cfd/blob/master/01/RTD/constant/transportProperties}{RTD/constant/transportProperties}}
+Ver el archivo completo: \textit{\href{https://github.com/guillerolle/casos_cfd/blob/master/01/RTD/constant/transportProperties}{RTD/constant/transportProperties}}
 
 %\lstinputlisting[caption=\textit{RTD/constant/transportProperties},frame=shadowbox]{OpenFOAM/RTD/transportProperties.txt}
 
 
 \subsection{Diccionarios en \textit{system}}
 Nuevamente, estos diccionarios contienen información sobre los solvers, pasos de tiempo, métodos numéricos, etc.
-El más importante es \textit{\href{https://github.com/guillerolle/adscripcion_cfd/blob/master/01/RTD/system/controlDict}{RTD/system/controlDict}}.  Esta vez, como el solver \textit{scalarTransportFoam} es un solver transitorio, las variables de tiempo sí representan tiempos y no iteraciones.
+El más importante es \textit{\href{https://github.com/guillerolle/casos_cfd/blob/master/01/RTD/system/controlDict}{RTD/system/controlDict}}.  Esta vez, como el solver \textit{scalarTransportFoam} es un solver transitorio, las variables de tiempo sí representan tiempos y no iteraciones.
 
 \begin{lstlisting}
 ...
@@ -380,9 +380,9 @@ deltaT 	  0.001;
 \end{lstlisting}
 
 Los otros dos contienen información sobre los esquemas numéricos y tolerancias.\par
-Ver archivo: \textit{\href{https://github.com/guillerolle/adscripcion_cfd/blob/master/01/RTD/system/fvSchemes}{RTD/system/fvSchemes}}\par
+Ver archivo: \textit{\href{https://github.com/guillerolle/casos_cfd/blob/master/01/RTD/system/fvSchemes}{RTD/system/fvSchemes}}\par
 Ver archivo:
-\textit{\href{https://github.com/guillerolle/adscripcion_cfd/blob/master/01/RTD/system/fvSolution}{RTD/system/fvSolution}}
+\textit{\href{https://github.com/guillerolle/casos_cfd/blob/master/01/RTD/system/fvSolution}{RTD/system/fvSolution}}
 
 
 %\lstinputlisting[caption=\textit{RTD/system/controlDict},frame=shadowbox]{OpenFOAM/RTD/controlDict.txt}
@@ -424,7 +424,7 @@ fields (T);
 \end{lstlisting}
 
 \noindent Ver el archivo completo: 
-\href{https://github.com/guillerolle/adscripcion_cfd/blob/master/01/RTD/system/patchAverage}{RTD/system/patchAverage}
+\href{https://github.com/guillerolle/casos_cfd/blob/master/01/RTD/system/patchAverage}{RTD/system/patchAverage}
 \bigskip
 
 %\lstinputlisting[caption=\textit{RTD/system/patchAverage},frame=shadowbox]{OpenFOAM/RTD/patchAverage.txt}
