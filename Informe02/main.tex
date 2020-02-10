@@ -159,9 +159,12 @@ exposedPatchName back;
 //- Linear extrusion in point-normal direction
 extrudeModel        wedge;
 
-point (0 0 0);// punto de paso del eje
-axis (1 0 0);// direccion del eje de simetria
-angle 15;// angulo de la seccion circular
+point (0 0 0);
+// punto de paso del eje
+axis (1 0 0);
+// direccion del eje de simetria
+angle 15;
+// angulo de la seccion circular
 ....
 \end{lstlisting}
 
@@ -282,197 +285,110 @@ Podemos ejecutar la simulación nuevamente con los mismos comandos anteriores y 
 \end{figure}
 
 Nótese que no se controla por Uz.
+
+\bigskip
+En la figura \ref{fig:sF_Ux} se compara el perfil de velocidad (componente X) obtenido en el caso axisimétrico y en el caso previo. Se observa que el valor máximo es mayor en el caso axisimétrico y además se encuentra sobre el eje de simetría.\par 
+Otra observación interesante que podemos realizar en la misma figura, es que en este nuevo caso hay una mayor cantidad de líneas de traza provenientes de la entrada de agroquímico. Esto nos permite sospechar un aumento de la concentración final en la salida, una vez hayamos terminado la simulación RTD.
 \begin{figure}[h!]
 	\centering
+	\includegraphics[width=0.85\textwidth]{../Informe01/Figuras/stream_vel.png}
 	\includegraphics[width=0.85\textwidth]{Figuras/04_traza.png}
-	\caption{Velocidad X}
+	\caption{Líneas de traza. Escala de velocidad $U_x$. Informe01 (arriba), Informe02 (abajo)}
 	\label{fig:sF_Ux}
 \end{figure}
 
+\newpage
 \section{Preparación del caso RTD}
-Como base para la simulación del transporte escalar copiaremos otro de los tutoriales en una carpeta nueva. En la carpeta principal del caso:
+Una vez obtenido el campo de velocidad con \textit{simpleFoam}, preparamos el caso RTD. Dentro del directorio del caso principal, creamos una carpeta llamada "RTD" y usaremos de plantilla el caso RTD del informe anterior.
+Reemplazamos las condiciones iniciales de velocidad por el resultado final de la última simulación (en este caso, iteración número 71):
 \begin{lstlisting}
 $ mkdir RTD
-$ cp -r $FOAM_TUTORIALS/basic/scalarTransportFoam/pitzDaily ./RTD
-$ cd RTD
+$ cd RTD/
+$ cp ../71/U ./0
 \end{lstlisting}
-
-Tendremos la siguiente estructura de archivos:
-\begin{lstlisting}
-RTD
-|-- 0
-|   |-- T
-|   `-- U
-|-- constant
-|   `-- transportProperties
-`-- system
-    |-- blockMeshDict
-    |-- controlDict
-    |-- fvSchemes
-    `-- fvSolution
-
-3 directories, 7 files
-\end{lstlisting}
-
-Copiamos la malla del caso anterior en el caso RTD.
+Debemos modificar las condiciones de "T" de manera que coincidan con los patches definidos en la malla nueva. \href{https://github.com/guillerolle/casos_cfd/tree/master/02/RTD/0/T}{Ver 0/T}.\par
+Copiamos la malla generada antes al nuevo caso:
 \begin{lstlisting}
 $ cp -r ../constant/polyMesh ./constant
 \end{lstlisting}
+\marginnote{\small \textbf{Linux tips:\\} El comando \texttt{cp -r} indica una copia recursiva. Es decir, permite copiar directorios completos en lugar de archivos puntuales. Ver \texttt{man cp}}
 
-Como antes, podemos comprobar que la malla esté creada correctamente ejecutando
-\begin{lstlisting}
-$ paraFoam
-\end{lstlisting}
-
-\subsection{Condiciones iniciales}
-Para el campo de velocidad usaremos el obtenido en la simulación anterior. En este caso, la última iteración es la 110. Por lo tanto
-
-\begin{lstlisting}
-$ cp ../110/U ./0
-\end{lstlisting}
-
-La concentración de agroquímico será representada en este caso por la variable \textit{T}. Un valor de 1 indicaría que el fluido es agroquímico puro y un valor de 0 indicaría que el fluido en ese lugar es únicamente agua.
-
-Entonces, para el \textit{inlet\_one} pondremos una condición tipo \textit{fixedValue} con valor 0 y para \textit{inlet\_two} un valor de 1. Para el \textit{outlet} pondremos condición \textit{zeroGradient}.
-
-Por ejemplo, para \textit{inlet\_one}:
-\begin{lstlisting}
-inlet_one 
-{
-	type	fixedValue;
-	value	uniform 0;
-}
-\end{lstlisting}
-
-Ver el archivo completo: \textit{\href{https://github.com/guillerolle/casos_cfd/blob/master/01/RTD/0/T}{RTD/0/T}}
-
-%\lstinputlisting[caption=\textit{RTD/0/T},frame=shadowbox]{OpenFOAM/T.txt}
-
-\subsection{Propiedades del fluido}
-En la carpeta \textit{constant} debemos definir un valor para el coeficiente de difusión del agroquímico. Propondremos un valor de 0.00005 (ojo! corroborar con el repositorio el valor más actualizado):
-
-\bigskip\bigskip
-
-\marginnote{\small \textbf{OpenFOAM tips:\\} En la versión \textit{\href{https://openfoam.org/}{dev}} es necesario definir las unidades de la difusividad mientras que en la  \textit{\href{https://openfoam.com/}{plus}} no.}
-\begin{lstlisting}
-...
-DT                         0.00005; // Para OpenFOAM-plus (v1906)
-DT   DT [0 2 -1 0 0 0 0] 0.00005; // Para OpenFOAM-dev (7)
-...
-\end{lstlisting}
-
-Ver el archivo completo: \textit{\href{https://github.com/guillerolle/casos_cfd/blob/master/01/RTD/constant/transportProperties}{RTD/constant/transportProperties}}
-
-%\lstinputlisting[caption=\textit{RTD/constant/transportProperties},frame=shadowbox]{OpenFOAM/RTD/transportProperties.txt}
-
-
-\subsection{Diccionarios en \textit{system}}
-Nuevamente, estos diccionarios contienen información sobre los solvers, pasos de tiempo, métodos numéricos, etc.
-El más importante es \textit{\href{https://github.com/guillerolle/casos_cfd/blob/master/01/RTD/system/controlDict}{RTD/system/controlDict}}.  Esta vez, como el solver \textit{scalarTransportFoam} es un solver transitorio, las variables de tiempo sí representan tiempos y no iteraciones.
-
-\begin{lstlisting}
-...
-endTime 2; // en segundos ambas. Chequear ultima version en repositorio
-deltaT 	  0.001;  
-...
-\end{lstlisting}
-
-Los otros dos contienen información sobre los esquemas numéricos y tolerancias.\par
-Ver archivo: \textit{\href{https://github.com/guillerolle/casos_cfd/blob/master/01/RTD/system/fvSchemes}{RTD/system/fvSchemes}}\par
-Ver archivo:
-\textit{\href{https://github.com/guillerolle/casos_cfd/blob/master/01/RTD/system/fvSolution}{RTD/system/fvSolution}}
-
-
-%\lstinputlisting[caption=\textit{RTD/system/controlDict},frame=shadowbox]{OpenFOAM/RTD/controlDict.txt}
-%\lstinputlisting[caption=\textit{RTD/system/fvSchemes},frame=shadowbox]{OpenFOAM/RTD/fvSchemes.txt}
-%\lstinputlisting[caption=\textit{RTD/system/fvSolution},frame=shadowbox]{OpenFOAM/RTD/fvSolution.txt}
+Los otros archivos en \texttt{constant} y \texttt{system} los dejamos como en el caso anterior. En el siguiente link se encuentra el directorio principal del caso RTD correspondiente a este informe: \href{https://github.com/guillerolle/casos_cfd/tree/master/02/RTD}{RTD - 02}
 
 \section{Simulación: \textit{scalarTransportFoam}}
 Ya tenemos el caso RTD preparado y podemos ejecutar la simulación con el solver \textit{scalarTransportFoam}. Cabe destacar que este es un solver transitorio a diferencia de \textit{simpleFoam} que es estacionario.
 
 \begin{lstlisting}
-$ scalarTransportFoam | tee log
-$ paraFoam
+$ scalarTransportFoam | tee log.scalarTransportFoam
+$ foamLog log.scalarTransportFoam
 \end{lstlisting}
 
-Podemos cargar el archivo de estado de ParaView \textit{RTD.pvsm} para abrir las gráficas y filtros correspondientes.
+Podemos cargar el archivo de estado de ParaView \textit{RTD.pvsm} para ver las gráficas y filtros correspondientes.
 
 \begin{figure}[h!]
 	\centering
-	%\includegraphics[width=1\textwidth]{Figuras/campo_T.png}
+	\includegraphics[width=1\textwidth]{Figuras/06_campo_T.png}
 	\caption{Concentración de agroquímico (t = 2s)}
 	\label{fig:campo_t}
 \end{figure}
 
+En la figura \ref{fig:comp_t} se muestra la concentración de agroquímicos de los dos casos realizados. Se aprecia claramente un aumento en la concentración final.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=1\textwidth]{Figuras/06_comparacion_T.png}
+	\caption{Concentración - Informe01 (abajo), Informe02 (arriba)}
+	\label{fig:comp_t}
+\end{figure}
+
 \newpage
 \section{Post proceso}
-Nos interesa conocer la concentración promedio en toda el área de salida del dispositivo. En la carpeta \textit{system} del caso RTD copiaremos el archivo \textit{patchAverage} de la carpeta \textit{etc} de OpenFOAM. En la carpeta principal RTD ejecutar:
-
-\begin{lstlisting}
-$ cp $FOAM_ETC/caseDicts/postProcessing/surfaceFieldValue/patchAverage ./system
-$ nano system/patchAverage
-\end{lstlisting}
-
-En este archivo debemos modificar los campos \textit{patchName} y \textit{field names} con nuestros valores de interés. Los cambios son los siguientes:
-\begin{lstlisting}
-...
-name  outlet;
-fields (T);
-...
-\end{lstlisting}
-
-\noindent Ver el archivo completo: 
-\href{https://github.com/guillerolle/casos_cfd/blob/master/01/RTD/system/patchAverage}{RTD/system/patchAverage}
-\bigskip
-
-%\lstinputlisting[caption=\textit{RTD/system/patchAverage},frame=shadowbox]{OpenFOAM/RTD/patchAverage.txt}
-
-Podemos ejecutar el post-proceso con el siguiente comando.
+Para obtener el valor promedio de concentración a la salida, podemos utilizar la función \textit{patchAverage} definida en el caso anterior.
 
 \begin{lstlisting}
 $ postProcess -func 'patchAverage'
 \end{lstlisting}
 
-Esto nos va a crear una carpeta \textit{postProcessing/patchAverage/0} con el archivo \textit{surfaceFieldValue\_0.dat}. Cambiamos de directorio para analizar más fácilmente estos datos:
-\begin{lstlisting}
-$ cd postProcessing/patchAverage/0
-\end{lstlisting}
-
-Ese archivo contiene el valor de areaAverage(T) para cada instante de tiempo dispuestos en columna. Para ver el contenido del archivo en la terminal ejecutar:
-\begin{lstlisting}
-$ cat surfaceFieldValue_0.dat
-\end{lstlisting}
-
-Este archivo podemos leerlo directamente en \textit{gnuplot} para realizar una gráfica de la concentración en función del tiempo.
+Esto nos crea una carpeta \texttt{postProcess} con los resultados. Graficamos ahora en \textit{gnuplot}:
 
 \begin{lstlisting}
 $ gnuplot
-gnuplot> plot 'surfaceFieldValue\_0.dat' w l title "outlet"
-gnuplot> set xlabel "Tiempo [s]"
-gnuplot> set ylabel "Concentracion []"
-gnuplot> replot
+> cd 'postProcessing/patchAverage/0'
+> set term wxt 0
+> plot 'surfaceFieldValue.dat' w l title "outlet"
+> set xlabel "Tiempo [s]"
+> set ylabel "Concentracion []"
+> set grid
+> replot
 \end{lstlisting}
-
-Observamos que la concentración en la salida converge a un valor de aproximadamente 15\%.
-
-\newpage
-\begin{figure}[h!]
-\centering
-%\includegraphics[width=1\textwidth]{Figuras/curva_concentracion.png}
-\caption{Concentración en la salida en función del tiempo}
-\label{fig:curva_conc}
-\end{figure}
-
-Podemos también observar el perfil de concentración sobre la salida para comprobar la homogeneidad de la mezcla. Esto se ve en rojo en la figura \ref{fig:curvas_outlet}.
 
 \begin{figure}[h!]
 	\centering
-	%\includegraphics[width=1\textwidth]{Figuras/outlet_graficas.png}
-	\caption{Distribución de valores sobre toda la altura del outlet}
-	\label{fig:curvas_outlet}
+	\includegraphics[width=1\textwidth]{Figuras/07_patchAverage.png}
+	\caption{Concentración en la salida en función del tiempo}
+	\label{fig:curva_conc}
 \end{figure}
 
-%\newpage
-%#\bibliographystyle{plain}
-%#\bibliography{references}
+Por último, verificar el perfil de concentración y comparar el perfil de velocidad a la salida en ambos casos con ParaView.
+
+En la figura \ref{fig:curva_conc} se observa que la concentración en la salida no es completamente uniforme. Ésta oscila en un rango del 1.5\%
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=1\textwidth]{Figuras/07_perfilT.png}
+	\caption{Perfil de concentración a la salida}
+	\label{fig:curva_conc}
+\end{figure}
+
+Es interesante comparar el perfil de velocidad en los dos casos. En la figura \ref{fig:curva_comp_ux} se observa que en el caso axisimétrico (Informe02) la velocidad del fluido alcanza un máximo bastante mayor al del primer caso, y, como era de esperar, ese máximo se encuentra sobre el eje central de la malla.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=1\textwidth]{Figuras/07_comparacion_Ux.png}
+	\caption{Perfil de velocidad $U_x$ en la salida}
+	\label{fig:curva_comp_ux}
+\end{figure}
+
+
+
 \end{document}
