@@ -220,6 +220,16 @@ Mesh OK.
 End
 \end{lstlisting}
 
+En la figura \ref{fig:malla_camara}  se muestra la malla final en la zona de la cámara de mezcla. Desde esta perspectiva, no hay ninguna diferencia apreciable con respecto a la generada con \textit{blockMesh}. Se ve que la malla es más rectangular en la zona inferior, está inclinada en el medio y es más cuadrada en la superior. 
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=0.8\textwidth]{Figuras/02_mesh_camara.png}
+	\caption{Geometría de la malla en la cámara de mezcla}
+	\label{fig:malla_camara}
+\end{figure}
+
+
 \section{Preparación de la simulación}
 Vamos a utilizar las mismas condiciones iniciales y mismos diccionarios que en el otro caso. Sin embargo, debemos actualizar los archivos \texttt{0/U} y \texttt{0/p} con los parches \textit{front} y \textit{back} como las definimos anteriormente.
 
@@ -380,6 +390,7 @@ En la figura \ref{fig:curva_conc} se observa que la concentración en la salida 
 	\label{fig:curva_conc}
 \end{figure}
 
+\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
 Es interesante comparar el perfil de velocidad en los dos casos. En la figura \ref{fig:curva_comp_ux} se observa que en el caso axisimétrico (Informe02) la velocidad del fluido alcanza un máximo bastante mayor al del primer caso, y, como era de esperar, ese máximo se encuentra sobre el eje central de la malla.
 
 \begin{figure}[h!]
@@ -389,6 +400,46 @@ Es interesante comparar el perfil de velocidad en los dos casos. En la figura \r
 	\label{fig:curva_comp_ux}
 \end{figure}
 
+ En una única ventana de ParaView (\textit{LineChartView}), podemos graficar varios filtros \textit{PlotOverLine}: 
+ 
+ En la figura \ref{fig:comp_seccion_vel} comparamos el perfil de velocidad en diferentes secciones del mezclador. 
+ 
+ Podemos apreciar las velocidades de entrada del agroquímico y de entrada del agua (naranja). Se aprecia el efecto de la axisimetría sobre la entrada de agua, obteniendo el máximo de velocidad sobre el eje central. En la entrada de agroquímico, la velocidad máxima está más limitada porque circula por un tubo de menor sección, aumentando el roce viscoso en el fluido.
+ 
+ En la cámara de mezcla (azul) existe una caída de la velocidad por el aumento de sección. Además, el máximo no está sobre la línea central porque en esta zona se mezclan los dos fluidos con distintas direcciones de flujo.
+ 
+ Al inicio de la tobera (rojo) es donde se desarrolla la mayor velocidad como era de esperar. Esta zona tiene la mínima sección del dispositivo y además es justo después de la convergencia de los dos fluidos.
+ 
+ En la salida del dispositivo se ve un descenso en la velocidad. Esto es \textbf{únicamente} por el aumento de sección. Tener presente que estamos analizando un caso en estado estacionario e incompresible. Cabe destacar que, debido a ésta acotación, el área de las gráficas son iguales entre sí.
 
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=1\textwidth]{Figuras/08_COMP_VELOCIDAD.png}
+	\includegraphics[width=1\textwidth]{Figuras/08_VELOCIDAD_STREAM.png}
+	\caption{Comparación de magnitud de velocidad en distintas secciones}
+	\label{fig:comp_seccion_vel}
+\end{figure}
+
+En la figura \ref{fig:comp_seccion_con} se ve la distribución de agroquímico en varias secciones. Es interesante en este caso, observar que a medida que avanzamos en la trayectoria del fluido, la concentración de agroquímico se hace más uniforme. Esto es decir que, gráficamente, las curvas se aplazan horizontalmente hasta quedar perfectamente vertical si la mezcla fuera totalmente homogénea.
+
+En el caso extremo, en la entrada (INLET), la gráfica es discontinua formada por dos rectas verticales. En la entrada de agua la concentración es uniforme y vale 0 y en entrada de agroquímico (de 0.006 a 0.008 en el eje Y) la concentración también es uniforme y vale el 100\% (esta parte de la gráfica está tapada por la leyenda).
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=1\textwidth]{Figuras/08_COMP_CONCEN.png}
+	\includegraphics[width=1\textwidth]{Figuras/08_CONCENC_STREAM.png}
+	\caption{Comparación de la concentración en distintas secciones}
+	\label{fig:comp_seccion_con}
+\end{figure}
+
+
+
+
+\section{Conclusiones}
+En este informe vimos cómo preparar un caso axisimétrico a partir de una malla creada con \textit{blockMesh}. Recordemos que \textit{OpenFOAM} siempre trabaja con 3 dimensiones y no en menos. En este caso, la simetría del problema hizo que aparezcan componentes en la 3er dimensión dificultando la convergencia del solver, aunque habíamos planteado un caso en 2D (una sóla celda en el eje Z).
+
+Además, aumentamos el detalle en el post-proceso, generando gráficas que revelan información más valiosa. Recordar que se puede ver el \href{https://github.com/guillerolle/casos_cfd/02/RTD/RTD.pvsm}{estado de paraview} para ver cómo se realizaron las gráficas (primero mallar y simular el caso en la computadora local).
+
+En el siguiente informe crearemos un caso 3D modelado con \href{https://www.freecadweb.org/}{FreeCAD} y mallado con \href{https://cfd.direct/openfoam/user-guide/v6-snappyhexmesh/}{SnappyHexMesh}
 
 \end{document}
