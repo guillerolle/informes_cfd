@@ -4,22 +4,22 @@
 \usepackage{amsmath,amsfonts}
 \usepackage[utf8]{inputenc}
 %
-\title{INSTRUCCIONES PARA PREPARAR UN ARTÍCULO DE ACUERDO AL ESTILO AMCA}
+\title{PREPARACIÓN Y SIMULACIÓN DE CASO 3D EN OPENFOAM}
 %
-\englishtitle{INSTRUCTIONS TO PREPARE AN ARTICLE ACCORDING TO THE AMCA-STYLE}
+\englishtitle{SETUP AND SIMULATION OF 3D CASE IN OPENFOAM}
 
-\author[a,b]{Primer A. Autor}
-\author[b]{Segundo B. Autor}
-\author[b]{Tercer C. Autor}
-\author[a]{Cuarto D. Autor}
+\author[a]{Guillermo Rolle}
+%\author[b]{Segundo B. Autor}
+%\author[b]{Tercer C. Autor}
+%\author[a]{Cuarto D. Autor}
 %
-\affil[a]{Grupo de Mecánica Computacional, Universidad Nacional de
-Villa Carolina, Los Alerces 3492, 4200~Villa Carolina, Argentina,
-gmc@uncarolina.edu.ar, \url{http://www.uncarolina.edu.ar/gmc}}
+%\affil[a]{Grupo de Mecánica Computacional, Universidad Nacional de
+%Villa Carolina, Los Alerces 3492, 4200~Villa Carolina, Argentina,
+%gmc@uncarolina.edu.ar, \url{http://www.uncarolina.edu.ar/gmc}}
 %
-\affil[b]{Grupo de Ingeniería Aplicada, Universidad Nacional de La
-Meseta, Los Cipreses 3493, 4201~La Meseta, Argentina,
-gia@unmeseta.edu.ar, \url{http://www.unmeseta.edu.ar/gia}}
+%\affil[b]{Grupo de Ingeniería Aplicada, Universidad Nacional de La
+%Meseta, Los Cipreses 3493, 4201~La Meseta, Argentina,
+%gia@unmeseta.edu.ar, \url{http://www.unmeseta.edu.ar/gia}}
 
 %% NOTA: SI TODOS LOS AUTORES TIENEN LA MISMA AFILICACION
 %% USE EL MACRO `\voidaffil' PARA EL CODIGO DE AFILICACION.
@@ -63,31 +63,21 @@ gia@unmeseta.edu.ar, \url{http://www.unmeseta.edu.ar/gia}}
 %% if `hyperref' is used, then you must use \hypersetup{} not \pdfinfo{}
 
 \begin{keywords}
-Instrucciones, estilo AMCA, Mecánica Computacional, artículo.
+CFD, OpenFOAM, FreeCAD, simpleFoam, scalarTransportFoam
 \end{keywords}
 
 \begin{abstract}
-Este documento provee información e instrucciones para preparar un
-artículo siguiendo el estilo de AMCA. La primera página está reservada para el título del artículo, los autores, la afiliación, las palabras clave y el resumen. Para los artículos escritos en idiomas español o portugués esta página debe, además, contener el título, las palabras clave y el resumen en inglés. El resumen debe tener un párrafo único y estar completamente contenido en la primer página. La introducción debe comenzar en la parte superior de la segunda página. La primera página del documento será impresa en el libro de Resúmenes. Todas las instrucciones, así como los archivos de ejemplo para LaTeX y MS-Word se pueden encontrar en el sitio web de la AMCA  \url{http://www.amcaonline.org.ar}.\\
+Este documento provee información e instrucciones para realizar una simulación de un caso 3D en OpenFOAM.
+La geometría 3D se modela con software FreeCAD y se malla con snappyHexMesh. Luego, se ejecutan las simulaciones correspondientes con simpleFoam y scalarTransportFoam.  Se mantienen las condiciones de contorno e iniciales de los informes anteriores. El documento finaliza con conclusiones sobre el caso y los resultados obtenidos. \\
 %
 \linebreak
 %
-\textbf{Keywords:} Instructions, AMCA style, Computational Mechanics, article.\\
+\textbf{Keywords:} CFD, OpenFOAM, FreeCAD, simpleFoam, scalarTransportFoam\\
 %
 \linebreak
 %
 \textbf{Abstract.} This document provides information and
-instructions to prepare an article following the AMCA  style. The
-first page is reserved for the title of the article, the authors,
-their affiliations, the keywords and the abstract. For articles
-written in Spanish or Portuguese, this page must contain in
-addition the title, the keywords, and the abstract in English. The
-abstract must have a unique paragraph and must be fully contained
-in the first page. The Introduction must begin at the top of the
-second page. The first page of the article will be printed in the
-Book of Abstracts. All the instructions as well as the example
-files for LaTeX and MS-Word can be found in the web page of AMCA
-\url{http://www.amcaonline.org.ar}.
+instructions to setup a 3D OpenFOAM case. The geometry is defined with FreeCAD software and is meshed with snappyHexMesh. Afterwards, the corresponding simulations will be run using solvers simpleFoam and scalarTransportFoam. Initial conditions and boundary conditions are kept from previous reports. The document ends with conclusions about the case and the results obtained.
 %\\
 %\\
 %\textbf{Agradecimientos:} Los autores agradecen... (no más de 2 líneas)
@@ -96,10 +86,38 @@ files for LaTeX and MS-Word can be found in the web page of AMCA
 \end{abstract}
 
 \section{INTRODUCCIÓN}
-Este documento provee información e instrucciones para preparar un
-artículo de acuerdo al estilo AMCA. Sólo los artículos formateados
-de acuerdo a los presentes lineamientos serán aceptados para las
-publicaciones de AMCA.
+En este documento se detallan los pasos a seguir para preparar y ejecutar una simulación en 3 dimensiones con OpenFOAM (ver figura \ref{fg:intro}). Se modela la geometría con software FreeCAD. El caso descrito en este informe se puede descargar del repositorio público: \url{https://github.com/guillerolle/casos_cfd/tree/master/03}. En el repositorio se encuentran también los archivos para FreeCAD.
+
+Se asume que el lector tiene una versión de FreeCAD disponible y lista para utilizar en conjunto con OpenFOAM. No se hará demasiado hincapié en el modelado de la geometría, sino más bien en todo lo que implique a OpenFOAM y CFD en sí.
+
+\begin{figure*}[htb]
+	\centerline{\includegraphics[width=0.8\textwidth]{Figuras/01_INTRO.png}} \caption{Caso 3D en cuestión} \label{fg:intro}
+\end{figure*}
+
+Este informe es parte de la serie de informes de \url{https://github.com/guillerolle/informes_cfd}. Estos casos están basados en un mezclador de agroquímicos en línea.
+
+\section{PREPARACIÓN DE LA GEOMETRÍA}
+El primer paso es realizar el modelo en FreeCAD del espacio de fluido que usaremos en la simulación. Es decir, nuestro volumen de control (macroscópicamente). En la figura \ref{fg:boceto_revo} se muestra el boceto del modelo. 
+
+\begin{figure*}[htb]
+	\centerline{\includegraphics[width=0.8\textwidth]{Figuras/02_BOCETO_REVOLUCION.png}} \caption{Croquis de la geometría} \label{fg:boceto_revo}
+\end{figure*}
+
+Haciendo una revolución de este croquis sobre el eje inferior, obtenemos la geometría en cuestión y podemos empezar a preparar el caso de CFD.
+
+\begin{figure*}[htb]
+	\centerline{\includegraphics[width=0.8\textwidth]{Figuras/02_BOTONES_CFD.png}} \caption{Acciones disponibles en espacio de trabajo \textbf{CfdOf}} \label{fg:botones_cfd}
+\end{figure*}
+
+En el espacio de trabajo \textbf{CfdOf} iniciaremos un nuevo estudio de CFD. Al iniciar el estudio, se habilitarán los botones de CFD en la barra superior (ver figura \ref{fg:botones_cfd}). Definimos las condiciones de contorno para cada cara de la geometría y ajustamos las propiedas del fluido y del solver. Ver las condiciones y propiedades correspondientes en los archivos del repositorio. Una vez hecho esto tendremos una estructura similar a la de la figura \ref{fg:estructura_freecad}.
+	
+	
+
+
+\begin{figure*}[htb]
+	\centerline{\includegraphics[width=0.8\textwidth]{Figuras/02_ESTRUCTURA_FREECAD.png}} \caption{Estructura básica del estudio CFD} \label{fg:estructura_freecad}
+\end{figure*}
+
 
 \section{ESPECIFICACIONES GENERALES}
 
