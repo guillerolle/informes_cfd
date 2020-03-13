@@ -109,14 +109,68 @@ Haciendo una revolución de este croquis sobre el eje inferior, obtenemos la geo
 	\centerline{\includegraphics[width=0.8\textwidth]{Figuras/02_BOTONES_CFD.png}} \caption{Acciones disponibles en espacio de trabajo \textbf{CfdOf}} \label{fg:botones_cfd}
 \end{figure*}
 
-En el espacio de trabajo \textbf{CfdOf} iniciaremos un nuevo estudio de CFD. Al iniciar el estudio, se habilitarán los botones de CFD en la barra superior (ver figura \ref{fg:botones_cfd}). Definimos las condiciones de contorno para cada cara de la geometría y ajustamos las propiedas del fluido y del solver. Ver las condiciones y propiedades correspondientes en los archivos del repositorio. Una vez hecho esto tendremos una estructura similar a la de la figura \ref{fg:estructura_freecad}.
-	
-	
+En el espacio de trabajo \textbf{CfdOf} iniciaremos un nuevo estudio de CFD. Al iniciar el estudio, se habilitarán los botones de CFD en la barra superior (ver figura \ref{fg:botones_cfd}).
 
+Antes de empezar, debemos definir la ruta de salida para el caso de OpenFOAM. Es decir, qué directorio utilizara FreeCAD para ejecutar las simulaciones. En la figura \ref{fg:fc_outputpath} se muestra dónde puede modificarse ésta ruta.
 
 \begin{figure*}[htb]
-	\centerline{\includegraphics[width=0.8\textwidth]{Figuras/02_ESTRUCTURA_FREECAD.png}} \caption{Estructura básica del estudio CFD} \label{fg:estructura_freecad}
+	\centerline{\includegraphics[width=0.7\textwidth]{Figuras/02_OUTPUTPATH.png}} \caption{Propiedad \textit{Output Path} en \textit{CfdAnalysis}} \label{fg:fc_outputpath}
 \end{figure*}
+
+
+
+Definimos las condiciones de contorno para cada cara de la geometría y ajustamos las propiedas del fluido y del solver. Ver las condiciones y propiedades correspondientes en los archivos del \href{https://github.com/guillerolle/casos_cfd/tree/master/03}{repositorio}. Una vez hecho esto tendremos un árbol similar a la de la figura \ref{fg:estructura_freecad}.
+
+\begin{figure*}[htb]
+	\centerline{\includegraphics[width=0.7\textwidth]{Figuras/02_ESTRUCTURA_FREECAD.png}} \caption{Estructura básica del estudio CFD} \label{fg:estructura_freecad}
+\end{figure*}
+
+\subsection{Mallado}
+Seleccionamos el sólido de revolución y elegimos la opción de crear una nueva malla a partir del sólido. Usamos el mallador \textbf{snappyHexMesh} en \textbf{3D} y un tamaño base de elemento 0.5mm. Usamos la utilidad para encontrar un punto dentro de la geometría y cerramos la ventana de tareas (todavía no ejecutar el caso de mallado). Vamos a crear además un refinamiento sobre las superficies de las paredes para tener una mejor definición de la capa límite. Para esto, seleccionar la malla (en el estudio CFD) y clickear en refinamiento de malla. Seleccionamos refinamiento por superficie y tamaño relativo de 0.5. Luego seleccionamos todas las superficies de pared.
+
+Con esto estamos listo para escribir el caso de mallado y ejecutarlo. En la figura \ref{fg:pv_malla} se muestra la malla generada en el visualizador \textbf{ParaView}. Observar el refinamiento sobre las paredes. Tener en cuenta que \textbf{Paraview} presenta algunos errores en la visualización de la malla, pero el mallado es correcto. Comprobar ejecutando \texttt{checkMesh}. También corroborar que las regiones de entrada/salida estén definidas correctamente.
+
+\begin{figure*}[htb]
+	\centerline{
+		\includegraphics[width=0.4\textwidth]{Figuras/02_MALLA_CAMARA.png}
+		\includegraphics[width=0.4\textwidth]{Figuras/02_MALLA_SECCION.png}} \caption{Malla en cámara de mezcla (izquierda) y en sección interna del difusor de salida (derecha)} \label{fg:pv_malla}
+\end{figure*}
+
+\newpage
+\section{SIMULACIÓN SIMPLEFOAM}
+Una vez creada la malla y definidas las propiedas del solver (modelo estacionario, flujo incompresible, agua, etc.) abrimos la sección \textbf{CfdSolver} en \textbf{FreeCAD} y escribimos el caso. Antes de ejecutarlo, debemos realizar algunas modificaciones en los archivos \textit{fvSolution} y \textit{fvSchemes}. En el repositorio se encuentran los archivos \href{https://github.com/guillerolle/casos_cfd/tree/master/03/case/system/fvSolution.bkp}{fvSolution.bkp} y \href{https://github.com/guillerolle/casos_cfd/tree/master/03/case/system/fvSchemes.bkp}{fvSchemes.bkp}. Reemplazar los anteriores por éstos últimos para mejorar la convergencia de la simulación.
+
+Se sugiere utilizar una utilidad como \href{https://meldmerge.org}{Meld} para comparar archivos y/o carpetas. En la figura \ref{fg:meld} se muestra esta utilidad comparando los archivos mencionados.
+
+\begin{figure*}[htb]
+	\centerline{
+		\includegraphics[width=0.8\textwidth]{Figuras/03_MELD.png}}
+		 \caption{Comparación archivos fvSolution.bkp (izquierda) con fvSolution (derecha)} \label{fg:meld}
+\end{figure*}
+
+Volviendo a FreeCAD, podremos ejecutar la simulación con \textit{RUN}. Observar que la evolución de los residuales (figura \ref{fg:03_sf_residuales}) comienza a oscilar sobre un valor aproximadamente constante a partir de la iteración número 1000 sin llegar nunca a las tolerancias definidas en \textit{system/fvSolution}. 
+
+\begin{figure*}[htb]
+	\centerline{
+		\includegraphics[width=0.8\textwidth]{Figuras/03_SF_RESIDUALES.png}}
+	\caption{Evolución de residuales con simpleFoam} \label{fg:03_sf_residuales}
+\end{figure*}
+
+Sin necesidad de esperar a que termine de correr la simulación, podemos ver la evolución del perfil en ParaView. En la figura \ref{fg:03_sf_U} se muestra el campo de velocidades para una iteración bastante avanzada de la simulación (1700). Al comparar con pasos de tiempo consecutivos, no se aprecian grandes diferencias en los campos de velocidad o presión, por lo que asumiremos que la simulación fue satisfactoria.
+FreeCAD descompone el caso en varios procesadores, por lo que para ver los resultados en ParaView debemos seleccionar "DecomposedCase".
+
+\begin{figure*}[htb]
+	\centerline{
+		\includegraphics[width=0.8\textwidth]{Figuras/03_SF_U.png}}
+	\caption{Campo de velocidad U obtenido} \label{fg:03_sf_U}
+\end{figure*}
+
+\subsection{Reconstrucción del caso}
+Ya sabemos de los informes anteriores que necesitamos copiar el campo de presión y velocidad obtenidos con esta simulación en otro directorio que contenga el caso de la simulación RTD. Como el caso fue ejecutado en varios procesadores, en el directorio principal no encontraremos los pasos de simulación. Éstos se encuentran en las carpetas \texttt{processor*} y los archivos están divididos (caso descompuesto).
+
+Para reconstruir el caso debemos ejecutar el comando \texttt{\$ reconstructPar} en el directorio \textit{case}. Ahora encontraremos los campos de presión y velocidad para la iteración 2000 en el directorio principal.
+
+\section{SIMULACIÓN SCALARTRANSPORTFOAM}
 
 
 \section{ESPECIFICACIONES GENERALES}
