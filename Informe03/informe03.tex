@@ -91,7 +91,7 @@ En este documento se detallan los pasos a seguir para preparar y ejecutar una si
 Se asume que el lector tiene una versión de FreeCAD disponible y lista para utilizar en conjunto con OpenFOAM. No se hará demasiado hincapié en el modelado de la geometría, sino más bien en todo lo que implique a OpenFOAM y CFD en sí.
 
 \begin{figure*}[htb]
-	\centerline{\includegraphics[width=0.8\textwidth]{Figuras/01_INTRO.png}} \caption{Caso 3D en cuestión} \label{fg:intro}
+	\centerline{\includegraphics[width=0.8\textwidth]{Figuras/05_GLYPH.png}} \caption{Caso 3D en cuestión} \label{fg:intro}
 \end{figure*}
 
 Este informe es parte de la serie de informes de \url{https://github.com/guillerolle/informes_cfd}. Estos casos están basados en un mezclador de agroquímicos en línea.
@@ -172,231 +172,87 @@ Para reconstruir el caso debemos ejecutar el comando \texttt{\$ reconstructPar} 
 
 \section{SIMULACIÓN SCALARTRANSPORTFOAM}
 
+Preparamos el caso de transporte escalar copiando la malla en \texttt{meshCase/constant/polyMesh} en el directorio \texttt{constant} del caso \texttt{RTD}. También traeremos de la simulación de \textit{simpleFoam} el campo de velocidad \texttt{2000/U} al directorio de condiciones iniciales \texttt{0/U} en \texttt{RTD}.
+Ajustamos las condiciones en \texttt{system} según los valores del \href{https://github.com/guillerolle/casos_cfd/blob/master/03/RTD/system}{repositorio}
 
-\section{ESPECIFICACIONES GENERALES}
+\subsection{Descomposición en varios procesadores}
+En el diccionario \href{https://github.com/guillerolle/casos_cfd/blob/master/03/RTD/system/decomposeParDict}{system/decomposeParDict} se indica la cantidad de subprocesos que se usarán para correr la simulación. Ajustar este valor en función de la cpu dónde se ejecuta. En este caso, se utilizarán 4 procesadores.
 
-El artículo puede ser escrito en inglés, español o portugués
-dentro de una caja de impresión de 16cm x 24cm, centrada en la
-página. El documento, incluyendo figuras, tablas y referencias,
-deben tener una longitud mínima de 4 páginas y no debe exceder las
-10 páginas. El documento debe ser cargado en el sitio de AMCA como
-archivo en formato \textbf {PDF}; no se aceptan otros formatos (MS
-Word, RTF). El tamaño del archivo PDF del documento no debe
-Exceder 2~MBytes.
+Ejecutamos \texttt{\$ createPatch -overwrite} y luego \texttt{\$ decomposePar -force} en el directorio principal y aparecerán ahora directorios \texttt{processor*}. Ahora, con el siguiente comando podremos iniciar la simulación: \par 
+\texttt{\$ mpirun -n 4 scalarTransportFoam -parallel | \\} 
+\texttt{>  tee log.scalarTransportFoam}
 
-\subsection{Uso de acrónimos}
-
-Si se usan acrónimos, entonces debe definirlos antes de su primer ocurrencia.
-
-\section{TÍTULO, AUTORES, AFILIACIÓN, PALABRAS CLAVE}
-
-La primera página debe contener el Título, Autor(es),
-Afiliación(es), Palabras clave y el resumen. Si el idioma elegido
-es el español o el portugués, se debe agregar el duplicado del
-título, palabras clave y resumen en inglés, siguiendo como ejemplo
-el presente instructivo. La segunda página debe comenzar con la
-Introducción. La primera línea del título se encuentra a 3cm de la
-parte superior de la caja de impresión para agregar el membrete
-AMCA.
-
-\subsection{Título}
-
-El título se debe escribir centrado, con 14pt, en Times Roman
-negrita y todas las letras en mayúsculas. Debe tener espaciado
-simple si el título tiene más de una línea de longitud. \textbf{No
-se recomienda} la inclusión de fórmulas o caracteres especiales en
-el título. Se pueden utilizar acrónimos si se definen \emph{en
-línea}, por ejemplo ``flujo alrededor de un cilindro utilizando
-Large Eddy Simulation (LES)''. La traducción al inglés del título
-se debe escribir centrada, con 12pt, en Times Roman negrita y
-todas las letras en mayúsculas.
-
-\subsection{Autor}
-
-El nombre del autor debe incluir el nombre, la inicial del segundo
-nombre y el apellido. Debe estar escrito centrado, en 12pt,
-negrita, Times Roman, a 12pt debajo del título. Ubique a todos los
-autores juntos, divididos en varias líneas si fuese necesario.
-Antes del último autor debe estar el conector ``{\bf y}''. Las
-afiliaciones deben estar organizadas en bloques centrados, después
-de los autores. Identifique a cada autor con su correspondiente
-afiliación usando un superíndice como en el ejemplo. Si todos los
-autores pertenecen a la misma afiliación no utilice superíndice.
-
-\subsection{Afiliación}
-
-La afiliación del autor se debe escribir centrada, en 11pt, en
-Times Roman itálica, a 12pt debajo de la lista de autores. Un
-espacio de 12pt debe separar dos afiliaciones distintas. Se
-recomienda que los autores incluyan, en lo posible, su dirección
-de correo electrónico y una página web por sitio de afiliación.
-
-\subsection{Palabras clave}
-
-Por favor, escriba a lo sumo seis palabras clave. Deben escribirse
-alineadas a la izquierda, en 12pt Times Roman, y la línea debe
-comenzar en fuente negrita con {\bf Palabras Clave}. Un espacio de
-12pt debe separar las palabras clave del texto de las
-afiliaciones. Utilice la palabra {\bf Keywords} para encabezar la
-traducción al inglés de las palabras clave. Un espacio de 12pt
-debe separar las palabras clave del texto del resumen en español.
-
-\subsection{Resumen}
-
-Utilice fuente Times Roman de 11pt para el resumen. El resumen
-debe tener un párrafo único sin saltos de línea. La palabra
-\textbf{Resumen} debe estar en negrita al principio de la primera
-línea. El texto del resumen debe estar justificado y separado 12pt
-como se muestra en la primera página de estas instrucciones. El
-resumen debe ser autónomo, por lo que no se deben incluir figuras,
-tablas o ecuaciones. Tampoco se deben incluir referencias cruzadas
-a tales materiales. Se desaconseja incluir referencias a otros
-trabajos en el resumen. En caso de incluirse referencias, deben
-hacerse \emph{en línea}, pero en forma abreviada como en este
-ejemplo (C. Jhonson et al., \emph{Int J Num Meth Eng},
-34(3):543--568 (1992); D. Mitchell y J. Brady, \emph{J Sound Vib},
-21(2):221--230 (2006)). Las citaciones múltiples deben separarse
-por punto y coma. \textbf{No se recomienda incluir más de 2
-referencias en el resumen}. Evite incluir caracteres especiales y
-fórmulas. Si utiliza acrónimos, debe definirlos inmediatamente
-antes de su primera ocurrencia. Ubique la traducción al inglés del
-resumen separándolo un espacio de 12pt de la traducción de las
-palabras clave; debe estar encabezado por la palabra
-\textbf{Abstract} en negrita. Se sugiere una extensión del resumen
-entre 150 y 300 palabras considerando que con las traducciones en
-inglés quede todo contenido en la primer página.
-
-\section{TÍTULOS EN EL TEXTO}
-
-\subsection{Títulos principales}
-
-Los títulos principales se deben escribir alineados a la
-izquierda, en 12pt, en Times Roman negrita, con letras todas
-mayúsculas. Debe haber un espacio de 12pt antes y de 6pt después
-de los títulos principales.
-
-\subsection{Títulos secundarios}
-
-Los títulos secundarios deben ser escritos alineados a la
-izquierda, en 12pt, en Times Roman negrita, con una mayúscula en
-la letra inicial para la primera palabra solamente. Debe haber un
-espacio de 12pt antes y de 6pt después de los títulos secundarios.
-
-\section{TEXTO}
-
-El texto normal debe escribirse con espaciado simple, justificado,
-utilizando fuente de 12pt Times Roman, en una columna. La primera
-línea de cada párrafo debe tener una sangría de 0,5cm. No debe
-haber separación entre párrafos.
-
-\section{NÚMEROS DE PÁGINA}
-
-Los autores {\bf no deben numerar} las páginas del artículo. Los
-números serán agregados por el editor.
-
-\section{FIGURAS}
-
-Todas las figuras deben numerarse consecutivamente y tener su
-leyenda o subtítulo. El subtítulo se debe escribir centrado, en
-10pt Times Roman, en minúsculas con letra mayúscula para la primer
-letra de la oración.
+En la figura \ref{fg:04_stf_res} se ven los residuales de esta simulación. Recordando que es una simulación en estado transitorio, se puede concluir que el solver llega a una solución constante a partir del 1er segundo de simulación aproximadamente.
 
 \begin{figure*}[htb]
-\centerline{\includegraphics{firstpage}} \caption{Disposición de
-la página.} \label{fg:figura}
+	\centerline{
+		\includegraphics[width=0.8\textwidth]{Figuras/04_STF_RESIDUAL_T.png}}
+	\caption{Evolución de residuales con simpleFoam} \label{fg:04_stf_res}
 \end{figure*}
 
-Un espacio de 6pt debe separar la figura de su leyenda, y un 12pt
-espacio debe separar el texto que la rodea de la parte superior de
-la figura y de la inferior de la leyenda (véase la
-Fig.~\ref{fg:figura}).
+\section{POST-PROCESO}
 
-Todas las figuras deben estar referenciadas en el texto. Las
-figuras en color son bienvenidas.
+Vamos a usar principalmente \textit{ParaView} para analizar los resultados. En la figura \ref{fg:05_stream_t} podemos ver unas líneas de traza coloreadas en función de la concentración de agroquímico. Se hizo la muestra sobre una línea paralela al eje 'Y' para facilitar la interpretación del campo tridimensional. Se observa que la mayor parte del mezclado se realiza, en realidad, justo después de la cámara de mezclado. Este fenómeno se puede adjudicar a que el flujo es laminar (por el modelo propuesto en la simulación), dificultando el mezclado dentro de la cámara.
 
-\section{ECUACIONES}
+\begin{figure*}[htb]
+	\centerline{
+		\includegraphics[width=0.8\textwidth]{Figuras/05_STREAMLINES_T.png}}
+	\caption{Líneas de traza coloreadas según concentración de agroquímico} \label{fg:05_stream_t}
+\end{figure*}
 
-Cada ecuación debe estar numerada utilizando números arábigos
-entre paréntesis. Debe estar centrada, dejando un espacio de 6pt
-arriba y abajo para separarla del texto que la rodea.
+Con una rápida inspección visual parece ser que a la salida la concentración de agroquímico es aproximadamente 0.7. Usando la función de posproceso definida en el caso de OpenFOAM como \textit{patchAverage} calculamos la evolución de la concentración en la superficie de salida. El valor final es de 72\%. En la figura \ref{fg:05_avg_T} se muestra esta evolución.
 
-El ejemplo siguiente es una ecuación de línea simple
-%
-\begin{equation}
-Ax = b.
-\end{equation}
 
-El ejemplo siguiente es una ecuación de varias líneas
-%
-\begin{equation} \label{eq:simple}
-\begin{aligned}
-Ax& = b,\\
-Ax& = c.
-\end{aligned}
-\end{equation}
-%
-En lo posible, se deben generar los vínculos internos del PDF para
-las referencias a las ecuaciones. El color recomendado para los
-vínculos a referencias en el texto es el azul; por ejemplo, ver
-Ec.~(\ref{eq:simple}).
+\begin{figure*}[htb]
+	\centerline{
+		\includegraphics[width=0.6\textwidth]{Figuras/05_AVERAGE_T.png}
+	}
+	\caption{Evolución la concentración en la salida del dispositivo} \label{fg:05_avg_T}
+\end{figure*}
 
-\section{TABLAS}
+Si hacemos varios cortes en distintas secciones del dispositivo podemos ver cómo varía la distribución de concentración en el eje 'X', como se muestra en la figura \ref{fg:05_STR_XY}. Observar que el agroquímico no llega a difundir perfectamente en la salida (color verde).
 
-Todas las tablas deben estar numeradas y tener su descripción.
-Esta descripción debe tener tamaño 10pt y fuente Times Roman, con
-letras minúsculas y mayúscula en la primera letra de la oración.
 
-Un espacio de 6pt separa la tabla de la descripción, y un espacio de 12pt
-separa la tabla del texto que la rodea. Por ejemplo, ver la
-Tabla~\ref{tab:n50}. Todas las tablas deben estar referencias en el texto.
+\begin{figure*}[htb]
+	\centerline{
+		\includegraphics[width=0.8\textwidth]{Figuras/05_STREAM_DIVISIONES.png}
+	}
+	\centerline{
+		\includegraphics[width=0.8\textwidth]{Figuras/05_T_VARIAS.png}
+	}
+	\caption{Distribución de concentración de agroquímico en varias secciones del dispositivo} \label{fg:05_STR_XY}
+\end{figure*}
 
-\begin{table}[htb]
-\centering
-\begin{tabular}{|c|c|c|c|}
-\hline  & malla 20x20  & malla 50x50  & malla 100x100 \\
-\hline
-\hline
- 0 & 41,00 & 1.00 & 4,92\\
-\hline
- 1 & 40,86 & 1.02 & 4,88 \\
-\hline
-10 & 23,81 & 3,44 & 2,92 \\
-\hline
-50 & 5,62 & 64,20 & 1,08 \\
-\hline
-\end{tabular}
-\caption{Número de condición para el operador de Stekhlov.}
-\label{tab:n50}
-\end{table}
+Sería conveniente analizar más detalladamente la concentración en la superficie de salida del dispositivo. Si bien debería mantener una simetría respecto del eje del dispositivo, en la figura  \ref{fg:05_outlet} queda en evidencia que esto no sucede así. Una posible razón de este inconveniente, es la malla ortogonal alineada con los ejes cartesianos en todo el volumen de la muestra. 
 
-\section{FORMATO DE  REFERENCIAS}
+\begin{figure*}[htb]
+	\centerline{
+		\includegraphics[width=0.8\textwidth]{Figuras/05_OUTLET_T.png}
+	}
+	\caption{Concentración en Outlet. Valores por celda} \label{fg:05_outlet}
+\end{figure*}
 
-Las referencias deben insertarse en el texto utilizando el estilo
-\emph{autor-fecha} (también conocido como \emph{Harvard style}).
-Las referencias se pueden citar entre \emph{paréntesis} como
-\citep{zienkiewicz91,idelsohn94,meyer82,meyer82b},
- o en forma \emph{textual}, por ejemplo, ver
-\citet{zienkiewicz91,idelsohn94,meyer82,meyer82b}. Las referencias
-deben agruparse y ordenarse alfabéticamente al final del artículo
-como se muestra en estas instrucciones. No incluya referencias que
-no sean citadas en el cuerpo del artículo. Utilice referencias con
-símbolos Romanos; no utilice, por ejemplo, símbolos griegos,
-chinos o japoneses.
+Esto puede implicar errores en la interpolación entre celdas. Será diferente para celdas contenidas en el plano XY (que debería tener componentes de velocidad únicamente en X e Y) que una que esté girada a 45 grados respecto a un plano paralelo al YZ. En este caso, el método debería interpolar en dirección a vértices de las celdas hexahedrícas y no sobre caras o aristas, generando diferencias entre celdas de una misma sección. En la figura \ref{fg:05_hexa_glyph} se muestra esta idea.
 
-En lo posible, debe generar los vínculos internos dentro del PDF para las citaciones.
-El color recomendado para los vínculos a referencias en el texto es el azul.
-El color preferido para vínculos a referencias externas, como las páginas web,
- es el rojo (por ejemplo, \url{http://www.amcaonline.org.ar}).
+
+\begin{figure*}[htb]
+	\centerline{
+		\includegraphics[width=0.8\textwidth]{Figuras/05_GLYPH_HEXA.png}
+	}
+	\caption{Malla ortogonal en un caso simétrico respecto a un eje} \label{fg:05_hexa_glyph}
+\end{figure*}
+
+Además, hay que tener en cuenta que el método no pudo reducir los residuales por más de $10^{-4}$, generando estas discrepancias con lo esperado. En ciertos casos, estas diferencias pueden ser perfectamente aceptables mientras que en otros no. Esto es criterio del ejecutante y de las exigencias que debe cumplir la simulación.
 
 \section{CONCLUSIONES}
+En este informe preparamos y ejecutamos el primer caso tridimensional del dispositivo. Generamos una malla sobre un modelo arbitrario creado en \textit{FreeCAD} y ejecutamos las simulaciones correspondientes. Surgieron dificultades con la convergencia de las simulaciones, mostrando de alguna manera la influencia del mallado sobre los resultados.
 
-Los archivos fuente en TeX, \LaTeX{} y ejemplos en MS-Word se
-pueden encontrar en el sitio web de AMCA:
-\url{http://www.amcaonline.org.ar}. Se recomienda el uso de estos archivos para respetar el formato con mayor facilidad. Recuerde: {\bf No numere las
-páginas.}
+Además, se hace notar que los resultados esperados en cuanto a la concentración promedio en el outlet debería ser similar a los del \href{https://github.com/guillerolle/informes_cfd/blob/master/Informe02.pdf}{informe anterior} (34\%) pero en este caso dio valores muy diferentes (72\%). Revisando las condiciones impuestas, los valores de presión en los inlets debía ser de 300 kPa, pero por error se hicieron las simulaciones con 0.3 kPa. No se realiza la simulación nuevamente ya que éstos valores generan mayores inconvenientes en la convergencia (con los mismos diccionarios en \texttt{system} los residuales no bajan de $10^{-2}$) y se considera un trabajo innecesario para los fines prácticos de este informe y adscripción. Se prefiere continuar con una simulación más avanzada en el siguiente informe.
+
+Aprovechando que las condiciones de la simulación no permiten resolver adecuadamente el caso en estado estacionario, el siguiente informe se va a realizar utilizando un solver transitorio \href{https://www.openfoam.com/documentation/guides/latest/doc/guide-applications-solvers-incompressible-pimpleFoam.html}{pimpleFoam}.
 
 %\section*{AGRADECIMIENTOS} Los autores agradecen a ...
 % ACKNOWLEDGEMENTS FOR FULL ARTICLES
 %
-\bibliography{amcapaper}
+%\bibliography{amcapaper}
 \end{document}
