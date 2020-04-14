@@ -62,6 +62,10 @@
 %% http://de.nntp2http.com/comp/text/tex/2008/12/5358fd061de9703a781885a5dcf98364.html
 %% if `hyperref' is used, then you must use \hypersetup{} not \pdfinfo{}
 
+\bigskip
+\bigskip
+\bigskip
+\bigskip
 \begin{keywords}
 CFD, OpenFOAM, pimpleFoam 
 \end{keywords}
@@ -90,7 +94,7 @@ This document provides a guide to perform a transient state simulation in OpenFO
 En el \href{https://github.com/guillerolle/informes_cfd/blob/master/Informe03.pdf}{informe anterior} se hicieron simulaciones en 3D sobre el mezclador de agroquímicos. Los campos de velocidad y presión fueron obtenidos con un solver estacionario. Se había comprobado que el solver no era capaz de reducir los residuales al valor requerido por no poder obtenerse una solución estacionaria. En este informe se simula el mismo caso pero con el solver transitorio \href{https://www.openfoam.com/documentation/guides/latest/doc/guide-applications-solvers-incompressible-pimpleFoam.html}{pimpleFoam}. Se usa una copia de la malla previa y el informe se basará exclusivamente en las modificaciones del caso para ejecutar el nuevo solver. 
 
 \begin{figure*}[htb]
-	%%\centerline{\includegraphics[width=0.8\textwidth]{Figuras/05_GLYPH.png}} 
+	\centerline{\includegraphics[width=0.8\textwidth]{Figuras/00_Intro.png}} 
 	\caption{Caso 3D en cuestión} \label{fg:intro}
 \end{figure*}
 
@@ -107,6 +111,8 @@ Primero, en el archivo \href{https://github.com/guillerolle/casos_cfd/tree/maste
 	\centerline{\includegraphics[width=0.8\textwidth]{Figuras/02_controlDict_1.png}}
 	\caption{cambios en controlDict: caso estacionario (izquierda) vs caso transitorio (derecha)} \label{fg:controlDict}
 \end{figure*}
+
+\textbf{Nota: } Las cambios representados en las imágenes de este informe pueden diferir de las modificaciones finales reales. La última versión de cada archivo puede verse en el repositorio online.
 
 En el archivo \href{https://github.com/guillerolle/casos_cfd/tree/master/04/case/system/fvSchemes}{fvSchemes} modificamos el campo \texttt{ddtSchemes} y agregamos una línea a \texttt{gradSchemes}. Los cambios se muestran en la figura \ref{fg:fvSchemes}.
 
@@ -127,121 +133,104 @@ Por último, modificamos las tolerancias de los solvers para \texttt{p} y \textt
 
 
 \newpage
+\section{SIMULACIÓN}
+Antes de poder ejecutar el archivo \href{https://github.com/guillerolle/casos_cfd/tree/master/04/case/Allrun}{Allrun} debemos modificarlo para que ejecute el solver \texttt{pimpleFoam} (ver figura \ref{fg:Allrun}). Además, recordar que en cada computadora donde se desee ejecutar este caso, se debe modificar el campo \texttt{FOAMDIR} del mismo archivo, y la cantidad de procesadores a utilizar con \texttt{mpirun}. Este último cambio debe corresponderse con el valor del campo \texttt{numberOfSubdomains} en el archivo \href{https://github.com/guillerolle/casos_cfd/tree/master/04/case/system/decomposeParDict}{decomposeParDict}.
+
+\begin{figure*}[htb]
+	\centerline{\includegraphics[width=1\textwidth]{Figuras/03_Allrun.png}} 
+	\caption{cambios en Allrun: caso estacionario (izquierda) vs caso transitorio (derecha)} \label{fg:Allrun}
+\end{figure*}
+
+Con esto estamos listos para ejecutar la simulación:\\
+\texttt{\$ ./Allrun}
+
+Es posible que la simulación se ejecute durante un tiempo prolongado. Por suerte, podemos observar el caso en \textit{ParaView} mientras aún se está ejecutando como se ve en la figura \ref{fg:pv_time}. Para esto, en otra terminal ir al directorio del caso y ejecutar:\\
+\texttt{\$ paraFoam -builtin}
+
+\begin{figure*}[htb]
+	\centerline{\includegraphics[width=0.2\textwidth]{Figuras/03_PV_TiempoIncompleto.png}} 
+	\caption{Lista de tiempos incompleta en ParaView. El tiempo total de simulación es 2} \label{fg:pv_time}
+\end{figure*}
+
+Seleccionamos las opciones \textit{"Decomposed Case"} y \textit{"Skip Zero Time"} y podremos trabajar con los datos cargados actualmente. Al hacer click en \textit{"Refresh"} podremos cargar los nuevos pasos de tiempo que hayan sido guardados en el disco.
+
+\begin{figure*}[htb]
+	\centerline{\includegraphics[width=0.6\textwidth]{Figuras/03_Courant.png}} 
+	\caption{Valor medio y máximo del número de Courant para una iteración arbitraria} \label{fg:Courant}
+\end{figure*}
+
+Mientras se ejecuta el caso es importante observar los valores del \href{https://www.openfoam.com/documentation/guides/latest/doc/guide-fos-field-courant-no.html}{número de Courant}. Este número representa una medida de la velocidad con la que la información es transportada bajo la influencia de un campo de flujo. Es un factor limitante en el rendimiento de los esquemas numéricos. Es recomendable que este número no sea superior a que 1. En la figura \ref{fg:Courant}  se ve que el valor máximo de Courant para ese tiempo es muy alto (6.69). Esto lo podemos comprobar en la figura \ref{fg:pvCourant}. En la imagen, la escala está limitada a un valor máximo de 1. Hay una cantidad importante de celdas donde el valor de Courant es muy alto.
+
+\begin{figure*}[htb]	
+	\centerline{\includegraphics[width=1\textwidth]{Figuras/03_pvCourant1.png}} 
+	\caption{Valor medio y máximo del número de Courant para una iteración arbitraria con h=0.001s} \label{fg:pvCourant}
+\end{figure*}
+
+Es posible que la simulación sea aceptable incluso para estos valores del número de Courant, pero para mejorar los resultados de la simulación, se cancela la simulación actual (\texttt{Ctrl+C} en la terminal) y se simula nuevamente con un paso de tiempo 10 veces más chico. Se espera que el número de Courant varíe linealmente con el paso de tiempo por su definición. Esta simulación es considerablemente más lenta (tardó aproximadamente 6 horas).
+
+\begin{figure*}[htb]
+	\centerline{\includegraphics[width=0.6\textwidth]{Figuras/03_Courant2.png}} 
+	\caption{Valor medio y máximo del número de Courant para una iteración arbitraria con h=0.0001s} \label{fg:Courant2}
+\end{figure*}
+
+En las figuras \ref{fg:Courant2} y \ref{fg:pvCourant2} se observa la clara disminución del número de Courant. Como mencionamos en el párrafo anterior, los valores medios y máximos (así como en todo el campo de flujo) se redujo aproximadamente 10 veces estos valores.
+
+\begin{figure*}[htb]
+	\centerline{\includegraphics[width=1\textwidth]{Figuras/03_pvCourant2.png}} 
+	\caption{Valor medio y máximo del número de Courant para una iteración arbitraria con h=0.0001s} \label{fg:pvCourant2}
+\end{figure*}
+
+\section{TIEMPO TRANSITORIO}
+Con esta simulación podemos determinar el tiempo que demora el dispositivo en llegar al régimen estacionario. El solver \textit{pimpleFoam} deja de iterar cuando se satisfacen las tolerancias definidas en el archivo \texttt{fvSolution}. Podemos aprovechar el archivo \texttt{log} generado para determinar cuándo llegó a la solución estacionaria.
+
+\texttt{\$ foamLog log.pimpleFoam}
+En la carpeta \texttt{\$CASE\_DIR/logs} se encuentran todos los archivos de post-proceso producidos por el comando anterior. En la figura \ref{fg:iter0} se observa que para un tiempo aproximadamente mayor a 0.6 podemos asumir que el solver ya ha convergido lo suficiente a la solución estacionaria. 
+
+\begin{figure*}[htb]
+	\centerline{\includegraphics[width=0.8\textwidth]{Figuras/04_iter.png}} 
+	\caption{Variaciones en U en cada iteración del método} \label{fg:iter0}
+\end{figure*}
+
+En la figura \ref{fg:05_compara_cte} se compara la simulación en tres tiempos diferentes para observar esas mínimas diferencias en el campo de velocidad (imperceptibles).
+
+\begin{figure*}[htb]
+	\centerline{\includegraphics[width=0.8\textwidth]{Figuras/05_Ux_06.png}} 
+	\centerline{\includegraphics[width=0.8\textwidth]{Figuras/05_Ux_08.png}} 
+	\caption{Campo Ux para t=0.6 (arriba) y t=0.8 (abajo)} \label{fg:05_compara_cte}
+\end{figure*}
+
+%\newpage
+\section{COMPARACIÓN ENTRE SOLVERS}
+Otro aspecto interesante es verificar si las simulaciones \texttt{simpleFoam} y \texttt{pimpleFoam} convergen a la misma solución estacionaria (o lo suficientemente parecidas). En la figura \ref{fg:06_pimple_simple} se comparan las dos simulaciones. Los resultados visibles son idénticos. También se comparan los campos de presión en la figura \ref{fg:06_pimple_simple_p}.
+
+\begin{figure*}[htb]
+	\centerline{\includegraphics[width=0.8\textwidth]{Figuras/06_pimple_simple.png}} 
+	\caption{Comparación campo U entre ambos solvers} \label{fg:06_pimple_simple}
+\end{figure*}
+
 \newpage
-
-\section{SIMULACIÓN SIMPLEFOAM}
-Una vez creada la malla y definidas las propiedas del solver (modelo estacionario, flujo incompresible, agua, etc.) abrimos la sección \textbf{CfdSolver} en \textbf{FreeCAD} y escribimos el caso. Antes de ejecutarlo, debemos realizar algunas modificaciones en los archivos \textit{fvSolution} y \textit{fvSchemes}. En el repositorio se encuentran los archivos \href{https://github.com/guillerolle/casos_cfd/tree/master/03/case/system/fvSolution.bkp}{fvSolution.bkp} y \href{https://github.com/guillerolle/casos_cfd/tree/master/03/case/system/fvSchemes.bkp}{fvSchemes.bkp}. Reemplazar los anteriores por éstos últimos para mejorar la convergencia de la simulación.
-
-Se sugiere utilizar una utilidad como \href{https://meldmerge.org}{Meld} para comparar archivos y/o carpetas. En la figura \ref{fg:meld} se muestra esta utilidad comparando los archivos mencionados.
-
 \begin{figure*}[htb]
-	%\centerline{
-		%\includegraphics[width=0.8\textwidth]{Figuras/03_MELD.png}}
-		 \caption{Comparación archivos fvSolution.bkp (izquierda) con fvSolution (derecha)} \label{fg:meld}
+	\centerline{\includegraphics[width=0.8\textwidth]{Figuras/06_pimple_simple_p.png}} 
+	\caption{Comparación campo P entre ambos solvers} \label{fg:06_pimple_simple_p}
 \end{figure*}
 
-Volviendo a FreeCAD, podremos ejecutar la simulación con \textit{RUN}. Observar que la evolución de los residuales (figura \ref{fg:03_sf_residuales}) comienza a oscilar sobre un valor aproximadamente constante a partir de la iteración número 1000 sin llegar nunca a las tolerancias definidas en \textit{system/fvSolution}. 
+Por último, vamos a comparar las diferencias en los campos en las primeras iteraciones de cada uno de los solvers.
+Esto se ve en la figura \ref{fg:06_ps_transitorio} . Observar que el \textit{simpleFoam} con 100 iteraciones ya prácticamente ha convergido a la solución final. En un solver transitorio, la simulación varía con el número de iteración según el paso de tiempo. En la figura \ref{fg:06_ps_transitorio} se visualiza la iteración 500 de \textit{pimpleFoam}, es decir, el tiempo 0.05 s y se nota claramente que el flujo no está desarrollado y los transitorios no son comparables entre solvers.
 
+\newpage
 \begin{figure*}[htb]
-	%\centerline{
-		%\includegraphics[width=0.8\textwidth]{Figuras/03_SF_RESIDUALES.png}}
-	\caption{Evolución de residuales con simpleFoam} \label{fg:03_sf_residuales}
+	\centerline{\includegraphics[width=0.8\textwidth]{Figuras/06_simple_100.png}} 
+	\centerline{\includegraphics[width=0.8\textwidth]{Figuras/06_pimple_005.png}} 
+	\caption{It. 100 de simpleFoam (arriba), It. 500 de pimpleFoam (abajo)} \label{fg:06_ps_transitorio}
 \end{figure*}
 
-Sin necesidad de esperar a que termine de correr la simulación, podemos ver la evolución del perfil en ParaView. En la figura \ref{fg:03_sf_U} se muestra el campo de velocidades para una iteración bastante avanzada de la simulación (1700). Al comparar con pasos de tiempo consecutivos, no se aprecian grandes diferencias en los campos de velocidad o presión, por lo que asumiremos que la simulación fue satisfactoria.
-FreeCAD descompone el caso en varios procesadores, por lo que para ver los resultados en ParaView debemos seleccionar "DecomposedCase".
-
-\begin{figure*}[htb]
-	%\centerline{
-		%\includegraphics[width=0.8\textwidth]{Figuras/03_SF_U.png}}
-	\caption{Campo de velocidad U obtenido} \label{fg:03_sf_U}
-\end{figure*}
-
-\subsection{Reconstrucción del caso}
-Ya sabemos de los informes anteriores que necesitamos copiar el campo de presión y velocidad obtenidos con esta simulación en otro directorio que contenga el caso de la simulación RTD. Como el caso fue ejecutado en varios procesadores, en el directorio principal no encontraremos los pasos de simulación. Éstos se encuentran en las carpetas \texttt{processor*} y los archivos están divididos (caso descompuesto).
-
-Para reconstruir el caso debemos ejecutar el comando \texttt{\$ reconstructPar} en el directorio \textit{case}. Ahora encontraremos los campos de presión y velocidad para la iteración 2000 en el directorio principal.
-
-\section{SIMULACIÓN SCALARTRANSPORTFOAM}
-
-Preparamos el caso de transporte escalar copiando la malla en \texttt{meshCase/constant/polyMesh} en el directorio \texttt{constant} del caso \texttt{RTD}. También traeremos de la simulación de \textit{simpleFoam} el campo de velocidad \texttt{2000/U} al directorio de condiciones iniciales \texttt{0/U} en \texttt{RTD}.
-Ajustamos las condiciones en \texttt{system} según los valores del \href{https://github.com/guillerolle/casos_cfd/blob/master/03/RTD/system}{repositorio}
-
-\subsection{Descomposición en varios procesadores}
-En el diccionario \href{https://github.com/guillerolle/casos_cfd/blob/master/03/RTD/system/decomposeParDict}{system/decomposeParDict} se indica la cantidad de subprocesos que se usarán para correr la simulación. Ajustar este valor en función de la cpu dónde se ejecuta. En este caso, se utilizarán 4 procesadores.
-
-Ejecutamos \texttt{\$ createPatch -overwrite} y luego \texttt{\$ decomposePar -force} en el directorio principal y aparecerán ahora directorios \texttt{processor*}. Ahora, con el siguiente comando podremos iniciar la simulación: \par 
-\texttt{\$ mpirun -n 4 scalarTransportFoam -parallel | \\} 
-\texttt{>  tee log.scalarTransportFoam}
-
-En la figura \ref{fg:04_stf_res} se ven los residuales de esta simulación. Recordando que es una simulación en estado transitorio, se puede concluir que el solver llega a una solución constante a partir del 1er segundo de simulación aproximadamente.
-
-\begin{figure*}[htb]
-	%\centerline{
-		%\includegraphics[width=0.8\textwidth]{Figuras/04_STF_RESIDUAL_T.png}}
-	\caption{Evolución de residuales con simpleFoam} \label{fg:04_stf_res}
-\end{figure*}
-
-\section{POST-PROCESO}
-
-Vamos a usar principalmente \textit{ParaView} para analizar los resultados. En la figura \ref{fg:05_stream_t} podemos ver unas líneas de traza coloreadas en función de la concentración de agroquímico. Se hizo la muestra sobre una línea paralela al eje 'Y' para facilitar la interpretación del campo tridimensional. Se observa que la mayor parte del mezclado se realiza, en realidad, justo después de la cámara de mezclado. Este fenómeno se puede adjudicar a que el flujo es laminar (por el modelo propuesto en la simulación), dificultando el mezclado dentro de la cámara.
-
-\begin{figure*}[htb]
-	%\centerline{
-		%\includegraphics[width=0.8\textwidth]{Figuras/05_STREAMLINES_T.png}}
-	\caption{Líneas de traza coloreadas según concentración de agroquímico} \label{fg:05_stream_t}
-\end{figure*}
-
-Con una rápida inspección visual parece ser que a la salida la concentración de agroquímico es aproximadamente 0.7. Usando la función de posproceso definida en el caso de OpenFOAM como \textit{patchAverage} calculamos la evolución de la concentración en la superficie de salida. El valor final es de 72\%. En la figura \ref{fg:05_avg_T} se muestra esta evolución.
-
-
-\begin{figure*}[htb]
-	\centerline{
-		  %\includegraphics[width=0.6\textwidth]{Figuras/05_AVERAGE_T.png}
-	}
-	\caption{Evolución la concentración en la salida del dispositivo} \label{fg:05_avg_T}
-\end{figure*}
-
-Si hacemos varios cortes en distintas secciones del dispositivo podemos ver cómo varía la distribución de concentración en el eje 'X', como se muestra en la figura \ref{fg:05_STR_XY}. Observar que el agroquímico no llega a difundir perfectamente en la salida (color verde).
-
-
-\begin{figure*}[htb]
-	\centerline{
-		  %\includegraphics[width=0.8\textwidth]{Figuras/05_STREAM_DIVISIONES.png}
-	}
-	\centerline{
-		  %\includegraphics[width=0.8\textwidth]{Figuras/05_T_VARIAS.png}
-	}
-	\caption{Distribución de concentración de agroquímico en varias secciones del dispositivo} \label{fg:05_STR_XY}
-\end{figure*}
-
-Sería conveniente analizar más detalladamente la concentración en la superficie de salida del dispositivo. Si bien debería mantener una simetría respecto del eje del dispositivo, en la figura  \ref{fg:05_outlet} queda en evidencia que esto no sucede así. Una posible razón de este inconveniente, es la malla ortogonal alineada con los ejes cartesianos en todo el volumen de la muestra. 
-
-\begin{figure*}[htb]
-	\centerline{
-		  %\includegraphics[width=0.8\textwidth]{Figuras/05_OUTLET_T.png}
-	}
-	\caption{Concentración en Outlet. Valores por celda} \label{fg:05_outlet}
-\end{figure*}
-
-Esto puede implicar errores en la interpolación entre celdas. Será diferente para celdas contenidas en el plano XY (que debería tener componentes de velocidad únicamente en X e Y) que una que esté girada a 45 grados respecto a un plano paralelo al YZ. En este caso, el método debería interpolar en dirección a vértices de las celdas hexahedrícas y no sobre caras o aristas, generando diferencias entre celdas de una misma sección. En la figura \ref{fg:05_hexa_glyph} se muestra esta idea.
-
-
-\begin{figure*}[htb]
-	\centerline{
-		  %\includegraphics[width=0.8\textwidth]{Figuras/05_GLYPH_HEXA.png}
-	}
-	\caption{Malla ortogonal en un caso simétrico respecto a un eje} \label{fg:05_hexa_glyph}
-\end{figure*}
-
-Además, hay que tener en cuenta que el método no pudo reducir los residuales por más de $10^{-4}$, generando estas discrepancias con lo esperado. En ciertos casos, estas diferencias pueden ser perfectamente aceptables mientras que en otros no. Esto es criterio del ejecutante y de las exigencias que debe cumplir la simulación.
 
 \section{CONCLUSIONES}
-En este informe preparamos y ejecutamos el primer caso tridimensional del dispositivo. Generamos una malla sobre un modelo arbitrario creado en \textit{FreeCAD} y ejecutamos las simulaciones correspondientes. Surgieron dificultades con la convergencia de las simulaciones, mostrando de alguna manera la influencia del mallado sobre los resultados.
+En este informe ejecutamos la primera simulación transitoria con \textit{pimpleFoam} sobre un caso previo de \textit{simpleFoam}. Se analizaron algunas cuestiones propias de estos solvers como el \textit{Número de Courant} y el  tiempo de transitorio. También se verificó que los resultados del campo estacionario sean coherentes entre solvers.
 
-Además, se hace notar que los resultados esperados en cuanto a la concentración promedio en el outlet debería ser similar a los del \href{https://github.com/guillerolle/informes_cfd/blob/master/Informe02.pdf}{informe anterior} (34\%) pero en este caso dio valores muy diferentes (72\%). Revisando las condiciones impuestas, los valores de presión en los inlets debía ser de 300 kPa, pero por error se hicieron las simulaciones con 0.3 kPa. No se realiza la simulación nuevamente ya que éstos valores generan mayores inconvenientes en la convergencia (con los mismos diccionarios en \texttt{system} los residuales no bajan de $10^{-2}$) y se considera un trabajo innecesario para los fines prácticos de este informe y adscripción. Se prefiere continuar con una simulación más avanzada en el siguiente informe.
+En los informes anteriores se simulaba también la difusión y convección del agroquímico que es inyectado en el dispositivo. En este caso se omitió ese paso porque es el método utilizado es incompatible con este solver. Antes se obtenía el campo estacionario y luego, a partir de ese campo obtenido, se ejecutaba una simulación transitoria sobre la difusión del agroquímico (campo escalar). Como se utiliza un solver transitorio para calcular los campos de velocidad y presión en este informe, no es posible aplicar el mismo método.
 
-Aprovechando que las condiciones de la simulación no permiten resolver adecuadamente el caso en estado estacionario, el siguiente informe se va a realizar utilizando un solver transitorio \href{https://www.openfoam.com/documentation/guides/latest/doc/guide-applications-solvers-incompressible-pimpleFoam.html}{pimpleFoam}.
+El estudio de difusión de agroquímico en un campo transitorio se dejará para un informe futuro.
 
 %\section*{AGRADECIMIENTOS} Los autores agradecen a ...
 % ACKNOWLEDGEMENTS FOR FULL ARTICLES
